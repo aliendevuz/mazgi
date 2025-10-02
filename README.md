@@ -27,5 +27,15 @@ Mazgi — ikki tomonli labirint o'yini. O'yinchi har ikki tomonini eslab qolib, 
 ## Foydalanish
 O'yinni ishga tushiring — dastur avtomatik tarzda labirint generatsiya qiladi. Siz esa labirintdan marragacha yetib borishingiz kerak bo'ladi.
 
+## Labirint maxsus belgilari
+```
+# Legend:
+# ' ' - devor
+# '=' - yo'l
+# '*' - start
+# '#' - finish
+# 'o' - tuynuk
+```
+
 ## Litsenziya
 Ushbu loyiha MIT litsenziyasi asosida tarqatiladi. Loyihadan bemalol foydalanishingiz mumkin, faqat muallif(lar)ni ko'rsatish sharti bilan.
