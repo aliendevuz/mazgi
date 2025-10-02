@@ -5,10 +5,9 @@ import time
 pygame.init()
 
 size = pygame.display.get_desktop_sizes()[0]
-CELL_SIZE = 64  # Har bir katakchaning o'lchami (px)
-MARGIN = 32     # Labirintlar orasidagi masofa
+CELL_SIZE = 64
+MARGIN = 32
 
-# Ranglar
 COLORS = {
     ' ': (40, 40, 40),      # devor
     '=': (200, 200, 200),   # yo'l
@@ -16,7 +15,7 @@ COLORS = {
     '#': (200, 50, 50),     # finish
     'o': (50, 50, 200),     # tuynuk
 }
-PLAYER_COLOR = (255, 255, 0)  # Player sariq rangda
+PLAYER_COLOR = (255, 255, 0)
 
 class Game:
     def __init__(self, maze: tuple[list[list[str]], list[list[str]]]):
@@ -25,9 +24,9 @@ class Game:
         self.cols = len(self.maze_a[0])
         surf_w = self.cols * CELL_SIZE
         surf_h = self.rows * CELL_SIZE
-        total_w = surf_w * 2 + MARGIN
-        total_h = surf_h
-        self.screen = pygame.display.set_mode((total_w, total_h), FULLSCREEN | SCALED)
+        self.surf_w = surf_w
+        self.surf_h = surf_h
+        self.screen = pygame.display.set_mode((surf_w, surf_h), FULLSCREEN | SCALED)
         self.clock = pygame.time.Clock()
         self.running = True
 
@@ -76,7 +75,6 @@ class Game:
         maze = self.maze_a if self.player_side == 0 else self.maze_b
         if self.can_move(self.player_side, nx, ny):
             self.player_pos = [nx, ny]
-            # Finish (#) ga yetib keldi
             if maze[ny][nx] == '#':
                 self.win = True
                 self.elapsed = time.time() - self.start_time
@@ -90,11 +88,9 @@ class Game:
         # Flip side
         prev_side = self.player_side
         self.player_side = 1 - self.player_side
-        # Gorizontal flip: x' = cols - 1 - x
         x, y = self.player_pos
         flipped_x = self.cols - 1 - x
         maze = self.maze_a if self.player_side == 0 else self.maze_b
-        # Yangi side'dagi o tuynukni shu y satrda topamiz
         for tx in range(self.cols):
             if maze[y][tx] == 'o' and tx == flipped_x:
                 self.player_pos = [tx, y]
@@ -109,6 +105,25 @@ class Game:
         text = self.font.render(msg, True, (255, 255, 255))
         rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
         self.screen.blit(text, rect)
+
+    def flip_animation(self, from_surf, to_surf, duration=0.5):
+        # Horizontal flip animatsiyasi
+        frames = int(duration * 60)
+        for i in range(frames):
+            progress = i / frames
+            # From surface qisqaradi, to surface kengayadi
+            from_width = int(self.surf_w * (1 - progress))
+            to_width = int(self.surf_w * progress)
+            self.screen.fill((20, 20, 20))
+            if from_width > 0:
+                from_scaled = pygame.transform.scale(from_surf, (from_width, self.surf_h))
+                from_flipped = pygame.transform.flip(from_scaled, True, False)
+                self.screen.blit(from_flipped, (self.surf_w - from_width, 0))
+            if to_width > 0:
+                to_scaled = pygame.transform.scale(to_surf, (to_width, self.surf_h))
+                self.screen.blit(to_scaled, (0, 0))
+            pygame.display.flip()
+            self.clock.tick(60)
 
     def start(self):
         print("Game started")
@@ -128,16 +143,37 @@ class Game:
                         self.handle_move(0, 1)
                     elif event.key in (K_RETURN, K_SPACE):
                         if self.can_teleport():
-                            self.teleport()
+                            # Animatsiya uchun surface'larni tayyorlash
+                            self.surf_a.fill((0, 0, 0))
+                            self.surf_b.fill((0, 0, 0))
+                            self.draw_maze(self.surf_a, self.maze_a, self.player_pos if self.player_side == 0 else None)
+                            self.draw_maze(self.surf_b, self.maze_b, self.player_pos if self.player_side == 1 else None)
+                            if self.player_side == 0:
+                                self.teleport()
+                                self.surf_a.fill((0, 0, 0))
+                                self.surf_b.fill((0, 0, 0))
+                                self.draw_maze(self.surf_a, self.maze_a, None)
+                                self.draw_maze(self.surf_b, self.maze_b, self.player_pos)
+                                self.flip_animation(self.surf_a, self.surf_b)
+                            else:
+                                self.teleport()
+                                self.surf_a.fill((0, 0, 0))
+                                self.surf_b.fill((0, 0, 0))
+                                self.draw_maze(self.surf_a, self.maze_a, self.player_pos)
+                                self.draw_maze(self.surf_b, self.maze_b, None)
+                                self.flip_animation(self.surf_b, self.surf_a)
 
+            # Faqat aktiv side ko'rsatiladi
             self.surf_a.fill((0, 0, 0))
             self.surf_b.fill((0, 0, 0))
-            self.draw_maze(self.surf_a, self.maze_a, self.player_pos if self.player_side == 0 else None)
-            self.draw_maze(self.surf_b, self.maze_b, self.player_pos if self.player_side == 1 else None)
-
-            self.screen.fill((20, 20, 20))
-            self.screen.blit(self.surf_a, (0, 0))
-            self.screen.blit(self.surf_b, (self.surf_a.get_width() + MARGIN, 0))
+            if self.player_side == 0:
+                self.draw_maze(self.surf_a, self.maze_a, self.player_pos)
+                self.screen.fill((20, 20, 20))
+                self.screen.blit(self.surf_a, (0, 0))
+            else:
+                self.draw_maze(self.surf_b, self.maze_b, self.player_pos)
+                self.screen.fill((20, 20, 20))
+                self.screen.blit(self.surf_b, (0, 0))
 
             # Elapsed time yoki win
             if self.win:

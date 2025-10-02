@@ -2,9 +2,9 @@ from game import Game
 from maze import *
 
 
-maze = sample_maze()
+maze = beginning_maze()
 
-game = Game(maze)
+game = Game(generate_maze(11, 11))
 
 
 if __name__ == '__main__':

@@ -37,5 +37,8 @@ O'yinni ishga tushiring — dastur avtomatik tarzda labirint generatsiya qiladi.
 # 'o' - tuynuk
 ```
 
+## TODO
+maze.py ichidagi generate_maze funksiyasi ishlab chiqarilishi kerak!
+
 ## Litsenziya
 Ushbu loyiha MIT litsenziyasi asosida tarqatiladi. Loyihadan bemalol foydalanishingiz mumkin, faqat muallif(lar)ni ko'rsatish sharti bilan.
